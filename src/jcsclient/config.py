@@ -33,18 +33,9 @@ import os
 import argparse
 import exception
 
-endpoints = {
-    'vpc'    : 'https://vpc.ind-west-1.jiocloudservices.com/',
-    'iam'    : 'https://iam.ind-west-1.jiocloudservices.com/',
-    'rds'    : 'https://rds.ind-west-1.jiocloudservices.com/',
-    'dss'    : 'https://dss.ind-west-1.jiocloudservices.com/',
-    'compute': 'https://compute.ind-west-1.jiocloudservices.com/',
-    'mon'    : 'https://mon.ind-west-1.jiocloudservices.com/'
-}
-
 config_handler = None
 
-def setup_config_handler(args):
+def setup_config_handler(url, access_key, secret_key, secure, debug):
     """
     Create global object of ConfigHandler based on the arguments
     passed to cli.
@@ -58,15 +49,13 @@ def setup_config_handler(args):
     """
     global config_handler
     if not config_handler:
-        config_handler = ConfigHandler(args)
+        config_handler = ConfigHandler(url, access_key, secret_key, secure, debug)
 
 def get_config_handler():
     """Fetch the global object of ConfigHandler."""
     global config_handler
     # This is to ensure that incase the initial setup
-    # of config handler failed, 
-    if config_handler is None:
-        config_handler = ConfigHandler()
+    # of config handler failed,
     return config_handler
 
 def get_secret_key():
@@ -83,9 +72,9 @@ def get_service_url(service):
 
     param service: service name whose url needed
 
-    return: string containing the url 
+    return: string containing the url
     """
-    return get_config_handler().get_service_url(service)
+    return get_config_handler().get_service_url()
 
 def check_secure():
     """Check whether to use certificates for connection"""
@@ -107,21 +96,17 @@ class ConfigHandler(object):
     2. Access/Secret Key values
     3. Processing general arguments given by user
     """
-    def __init__(self, args=None):
-        self.endpoints = endpoints
-        self.secure = True
-        self.debug = False
-        self.access_key = os.environ.get('ACCESS_KEY')
-        self.secret_key = os.environ.get('SECRET_KEY')
+    def __init__(self, endpoint, acsK, secK, secure, debug):
+        self.endpoint = endpoint
+        self.secure = secure
+        self.debug = debug
+        self.access_key = acsK
+        self.secret_key = secK
         if not self.access_key or not self.secret_key:
             raise exception.UnknownCredentials()
-        if args:
-            self.process_cli_specific_args(args)
 
-    def get_service_url(self, service):
-        service_url_env = service.upper() + "_URL"
-        url = os.environ.get(service_url_env, self.endpoints.get(service))
-        return url
+    def get_service_url(self):
+        return self.endpoint
 
     def get_access_key(self):
         return self.access_key
@@ -135,17 +120,4 @@ class ConfigHandler(object):
     def check_debug(self):
         return self.debug
 
-    def process_cli_specific_args(self, args):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--debug', action='store_true')
-        parser.add_argument('--insecure', action='store_true')
-        processed_args, args_left = parser.parse_known_args(args)
-        processed_args = vars(processed_args)
-        del args[:]
-        for arg in args_left:
-            args.append(arg)
-        if processed_args.get('debug'):
-            self.debug = True
-        if processed_args.get('insecure') == True:
-            self.secure = False
 

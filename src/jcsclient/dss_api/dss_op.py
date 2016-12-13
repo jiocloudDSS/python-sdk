@@ -40,7 +40,7 @@ class DSSOp(object):
                               'Authorization': None,
                               'Date': None,
                             }
-        self.dss_url = config.get_service_url('dss')
+        self.dss_url = config.get_service_url()
         if(self.dss_url.endswith('/')):
             self.dss_url = self.dss_url[:-1]
         self.access_key = config.get_access_key()
@@ -63,7 +63,7 @@ class DSSOp(object):
     def execute(self):
         pass
 
-    """ Each operation should override this method if it needs to 
+    """ Each operation should override this method if it needs to
     reprocess the output from DSS to make it compatible with the
     the cli
 
@@ -80,9 +80,9 @@ class DSSOp(object):
         self.http_headers['Date'] = formatdate(usegmt=True)
 
         # construct request
-        request_url = self.dss_url + self.dss_op_path 
+        request_url = self.dss_url + self.dss_op_path
         if(self.dss_query_str is not None):
-            request_url += '?' + self.dss_query_str  
+            request_url += '?' + self.dss_query_str
         # make request
         resp = requests.request(self.http_method, request_url, headers = self.http_headers, verify = self.is_secure_request)
         return resp

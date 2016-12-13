@@ -38,18 +38,9 @@ class BucketOp(DSSOp):
 
     def __init__(self):
         DSSOp.__init__(self)
-        self.bucket_name = None
 
-    def parse_args(self, args):
-        params = {}
-        args = args[1:]
-        parser = utils.get_argument_parser()
-        parser.add_argument('--bucket', required=True)
-        args = parser.parse_args(args)
-        args_dict = vars(args)
-        self.bucket_name = args_dict['bucket']
-        self.dss_op_path = '/' + self.bucket_name
-
+    def parse_args(self):
+      self.dss_op_path = '/' + self.bucket_name
 
     def validate_args(self):
         pass
@@ -71,15 +62,16 @@ class ListBucketsOp(BucketOp):
         self.dss_op_path = '/'
         self.http_method = 'GET'
 
-    def parse_args(self, args):
+    def parse_args(self):
         # no arguments in list-buckets for now
         pass
 
 class CreateBucketOp(BucketOp):
 
-    def __init__(self):
+    def __init__(self, name):
         BucketOp.__init__(self)
         self.http_method = 'PUT'
+        self.bucket_name = name
 
 
     def process_result(self, result):
@@ -92,8 +84,9 @@ class CreateBucketOp(BucketOp):
 
 class DeleteBucketOp(BucketOp):
 
-    def __init__(self):
+    def __init__(self, name):
         BucketOp.__init__(self)
+        self.bucket_name = name
         self.http_method = 'DELETE'
 
 
@@ -149,7 +142,7 @@ class ListObjectsOp(BucketOp):
             self.dss_query_str = None
 
 class ListMPUploadsOp(BucketOp):
-    
+
     def __init__(self):
         BucketOp.__init__(self)
         self.http_method = 'GET'

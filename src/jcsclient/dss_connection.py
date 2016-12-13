@@ -20,43 +20,77 @@
 # IN THE SOFTWARE.
 #
 
-from dss_bucket_ops import *
-from dss_object_ops import *
+from jcsclient.dss_api.dss_bucket_ops import *
+from jcsclient.dss_api.dss_object_ops import *
+from jcsclient.config import *
 
-class DSS(object):
+
+class DSSConnection(object):
     """DSS main class, each cli command is processed here
     Object is created from inside the dss Controller
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, url, access_key, secret_key, secure, debug):
+        setup_config_handler(url, access_key, secret_key, secure, debug)
 
-    def main(self, args):
-        """ main function to process all cli commands
-        This function gets called from the cli driver
-        Here, the first argument passed in list of args is the api
-        Steps to process a cli command
-        1. create an object of type DSSOp based on the api
-        2. parse the args
-        3. validate the args
-        4. execute the operation
-        5. process the result to make it compatible with the cli driver
-        6. return the result
-        """
-        
-        op_factory = DSSOpFactory()
-        op = op_factory.get_op(args[0])
-        if(op is None):
-          raise MethodNotFound('dss', args[0])
-        op.parse_args(args)
+    def operate(self, op):
+        op.parse_args()
         op.validate_args()
         result = op.execute()
         processed_result = op.process_result(result)
         return processed_result
 
+    def main(self):
+        pass
+
+    def create_bucket(self, bucketName):
+        op = CreateBucketOp(bucketName)
+        result = self.operate(self,op)
+        return result
+
+    def delete_bucket(self, bucketName):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+    def head_bucket(self, bucketName):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def list_buckets(self):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def copy_object(self):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def delete_object(self, buckName, objName):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def get_object(self, buckName, objName):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def list_objects(self, buckName):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def head_object(self, buckName, objName):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def put_object(self, buckName, objName, path):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+    def get_presigned_url(self, buckName, objName, period):
+        op = CreateBucketOp()
+        result = self.operate(self,op)
+
+
 
 class DSSOpFactory(object):
-    """Factory to create objects of types DSSOp based on the 
+    """Factory to create objects of types DSSOp based on the
     cli arguments
     """
 
@@ -98,5 +132,5 @@ class DSSOpFactory(object):
 			return ListPartsOp()
         if(cli_action == 'upload-part'):
 			return UploadPartOp()
-        
+
         return None
