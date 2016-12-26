@@ -39,7 +39,7 @@ class BucketOp(DSSOp):
     def __init__(self):
         DSSOp.__init__(self)
 
-    def parse_args(self):
+    def parse_args(self, options):
       self.dss_op_path = '/' + self.bucket_name
 
     def validate_args(self):
@@ -49,9 +49,18 @@ class BucketOp(DSSOp):
         resp = self.make_request()
         return resp
 
-    def process_result(self, result):
-        # nonop currently
-        return result
+    def process_result(self, result, response_json=None):
+        if result is not None:
+            status = result.status_code
+            if status != 200 and status != 204:
+                response_json = {"headers": result.headers, "status_code": result.status_code,
+                                 "status_message": result.reason, "error_message": result.text}
+            else:
+                response_json = {"headers": result.headers, "status_code": result.status_code,
+                                 "status_message": result.reason, "content": result.content}
+        else:
+            response_json = {"status_code": "500", "error_message": "Connection not established"}
+        return response_json
 
 
 
@@ -62,8 +71,7 @@ class ListBucketsOp(BucketOp):
         self.dss_op_path = '/'
         self.http_method = 'GET'
 
-    def parse_args(self):
-        # no arguments in list-buckets for now
+    def parse_args(self, options):
         pass
 
 class CreateBucketOp(BucketOp):
@@ -72,14 +80,6 @@ class CreateBucketOp(BucketOp):
         BucketOp.__init__(self)
         self.http_method = 'PUT'
         self.bucket_name = name
-
-
-    def process_result(self, result):
-        # nonop currently, just dump a json in case of success
-        if(result.status_code == 200):
-            respone_json = '{ "Location": "' + self.dss_url + '/' + self.bucket_name + '" }'
-            self.pretty_print_json_str(respone_json)
-        return result
 
 
 class DeleteBucketOp(BucketOp):
@@ -92,60 +92,64 @@ class DeleteBucketOp(BucketOp):
 
 class HeadBucketOp(BucketOp):
 
-    def __init__(self):
+    def __init__(self, name):
         DSSOp.__init__(self)
         self.http_method = 'HEAD'
+        self.bucket_name = name
+
 
 class ListObjectsOp(BucketOp):
 
-    def __init__(self):
+    def __init__(self, name):
         DSSOp.__init__(self)
         self.http_method = 'GET'
+        self.bucket_name = name
 
-    def parse_args(self, args):
+    def parse_args(self, args_dict):
         params = {}
-        args = args[1:]
-        parser = utils.get_argument_parser()
-        parser.add_argument('--bucket', required=True)
-        parser.add_argument('--prefix')
-        parser.add_argument('--max-items')
-        parser.add_argument('--starting-token')
-        parser.add_argument('--delimiter')
-        args = parser.parse_args(args)
-        args_dict = vars(args)
-        self.bucket_name = args_dict['bucket']
-        self.dss_op_path = '/' + self.bucket_name
         is_query_params_set = False
         self.dss_query_str = ''
+
+        self.dss_op_path = '/' + self.bucket_name
+
+        if (args_dict is None):
+            return
+
         if(args_dict['prefix'] is not None):
             self.dss_query_str = 'prefix=' + args_dict['prefix']
             is_query_params_set = True
-        if(args_dict['starting_token'] is not None):
+
+        if(args_dict['marker'] is not None):
             if(not is_query_params_set):
-                self.dss_query_str += 'marker=' + args_dict['starting_token']
+                self.dss_query_str += 'marker=' + args_dict['marker']
                 is_query_params_set = True
             else:
-                self.dss_query_str += '&marker=' + args_dict['starting_token']
-        if(args_dict['max_items'] is not None):
+                self.dss_query_str += '&marker=' + args_dict['marker']
+
+        if(args_dict['max-keys'] is not None):
             if(not is_query_params_set):
-                self.dss_query_str += 'max-keys=' + args_dict['max_items']
+                self.dss_query_str += 'max-keys=' + args_dict['max-keys']
                 is_query_params_set = True
             else:
-                self.dss_query_str += '&max-keys=' + args_dict['max_items']
+                self.dss_query_str += '&max-keys=' + args_dict['max-keys']
+
         if(args_dict['delimiter'] is not None):
             if(not is_query_params_set):
                 self.dss_query_str += 'delimiter=' + args_dict['delimiter']
                 is_query_params_set = True
             else:
                 self.dss_query_str += '&delimiter=' + args_dict['delimiter']
+
         if(self.dss_query_str == ''):
             self.dss_query_str = None
 
+
 class ListMPUploadsOp(BucketOp):
 
-    def __init__(self):
+    def __init__(self, buckname):
         BucketOp.__init__(self)
         self.http_method = 'GET'
         self.dss_query_str_for_signature = 'uploads'
         self.dss_query_str = 'uploads'
+        self.bucket_name = buckname
 

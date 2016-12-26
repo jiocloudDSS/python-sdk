@@ -33,8 +33,8 @@ class DSSConnection(object):
     def __init__(self, url, access_key, secret_key, secure, debug):
         setup_config_handler(url, access_key, secret_key, secure, debug)
 
-    def operate(self, op):
-        op.parse_args()
+    def operate(self, op, options=None):
+        op.parse_args(options)
         op.validate_args()
         result = op.execute()
         processed_result = op.process_result(result)
@@ -45,92 +45,95 @@ class DSSConnection(object):
 
     def create_bucket(self, bucketName):
         op = CreateBucketOp(bucketName)
-        result = self.operate(self,op)
+        result = self.operate(op)
         return result
 
     def delete_bucket(self, bucketName):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+        op = DeleteBucketOp(bucketName)
+        result = self.operate(op)
+        return result
+
     def head_bucket(self, bucketName):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+        op = HeadBucketOp(bucketName)
+        result = self.operate(op)
+        return result
 
     def list_buckets(self):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
-
-    def copy_object(self):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+        op = ListBucketsOp()
+        result = self.operate(op)
+        return result
 
     def delete_object(self, buckName, objName):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+        op = DeleteObjectOp(buckName, objName)
+        result = self.operate(op, options=None)
+        return result
 
-    def get_object(self, buckName, objName):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+    def get_object(self, buckName, objName, path=None):
+        op = GetObjectOp(buckName, objName, path)
+        result = self.operate(op, options=None)
+        return result
 
-    def list_objects(self, buckName):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+    def list_objects(self, buckName, options=None):
+        op = ListObjectsOp(buckName)
+        result = self.operate(op, options)
+        return result
 
     def head_object(self, buckName, objName):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+        op = HeadObjectOp(buckName, objName)
+        result = self.operate(op, options=None)
+        return result
 
     def put_object(self, buckName, objName, path):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+        op = PutObjectOp(buckName, objName, path)
+        result = self.operate(op)
+        return result
 
-    def get_presigned_url(self, buckName, objName, period):
-        op = CreateBucketOp()
-        result = self.operate(self,op)
+    def init_multipart_upload(self, bucketname, keyname):
+        op = InitMPUploadOp(bucketname, keyname)
+        result = self.operate(op)
+        return result
 
+    def upload_multipart_parts(self, buckname, keyname, args_dict, data_path, size):
+        op = UploadPartOp(buckname=buckname, objname=keyname)
+        op.parse_args(args_dict)
+        res = op.execute(fp=data_path, size=size)
+        result = op.process_result(res)
+        return result
 
+    def complete_multipart_upload(self, bucketname, keyname, args_dict):
+        op = CompleteMPUploadOp(bucketname, keyname)
+        result = self.operate(op, args_dict)
+        return result
 
-class DSSOpFactory(object):
-    """Factory to create objects of types DSSOp based on the
-    cli arguments
-    """
+    def cancel_multipart_upload(self, bucketname, keyname, uploadId):
+        op = CancelMPUploadOp(bucketname, keyname, uploadId)
+        result = self.operate(op, options=None)
+        return result
 
-    def __init__(self):
-        pass
+    def list_multipart_parts(self, bucketname, keyname, upload_id, outfile=None):
+        op = ListPartsOp(bucketname, keyname, upload_id, outfile)
+        op.parse_args(args_dict=None)
+        op.validate_args()
+        result = op.execute()
+        processed_result = op.process_result(result, outfile)
+        return processed_result
 
-    def get_op(self, cli_action):
-        if(cli_action == 'create-bucket'):
-			return CreateBucketOp()
-        if(cli_action == 'delete-bucket'):
-			return DeleteBucketOp()
-        if(cli_action == 'head-bucket'):
-			return HeadBucketOp()
-        if(cli_action == 'list-buckets'):
-			return ListBucketsOp()
-        if(cli_action == 'copy-object'):
-			return CopyObjectOp()
-        if(cli_action == 'delete-object'):
-			return DeleteObjectOp()
-        if(cli_action == 'get-object'):
-			return GetObjectOp()
-        if(cli_action == 'head-object'):
-			return HeadObjectOp()
-        if(cli_action == 'list-objects'):
-			return ListObjectsOp()
-        if(cli_action == 'put-object'):
-			return PutObjectOp()
-        if(cli_action == 'get-presigned-url'):
-			return GetPresignedURLOp()
-        if(cli_action == 'create-multipart-upload'):
-			return InitMPUploadOp()
-        if(cli_action == 'abort-multipart-upload'):
-			return CancelMPUploadOp()
-        if(cli_action == 'complete-multipart-upload'):
-			return CompleteMPUploadOp()
-        if(cli_action == 'list-multipart-uploads'):
-			return ListMPUploadsOp()
-        if(cli_action == 'list-parts'):
-			return ListPartsOp()
-        if(cli_action == 'upload-part'):
-			return UploadPartOp()
+    def list_multipart_uploads(self, buckname):
+        op = ListMPUploadsOp(buckname)
+        result = self.operate(op)
+        return result
 
-        return None
+    def copy_object(self, buckname, keyname, sourceName):
+        op = CopyObjectOp(buckname=buckname, objname=keyname, copysource=sourceName)
+        result = self.operate(op, options=None)
+        return result
+
+    def get_presigned_url(self, buckname, objname, expiry):
+        op = GetPresignedURLOp(buckname=buckname, objname=objname, expiry=expiry)
+        result = self.operate(op, options=None)
+        return result
+
+    def rename_object(self, buckname, objname, newName):
+        op = RenameObjectOp(buckname=buckname, objname=objname, newName=newName)
+        result = self.operate(op, options=None)
+        return result

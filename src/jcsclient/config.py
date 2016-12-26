@@ -66,7 +66,7 @@ def get_access_key():
     """Return the access key for the account user."""
     return get_config_handler().get_access_key()
 
-def get_service_url(service):
+def get_service_url():
     """
     Return the access key for the account user.
 

@@ -22,17 +22,17 @@ def read(*names, **kwargs):
 
 
 setup(
-    name='python-jcsclient',
-    version='1.0',
+    name='jcs-dss-sdk',
+    version='1.0.1',
     license='BSD',
-    description='Client library for JCS',
+    description='python SDK for JCS DSS',
     long_description='%s\n%s' % (
         re.compile('^.. start-badges.*^.. end-badges', re.M | re.S).sub('', read('README.rst')),
         re.sub(':[a-z]+:`~?(.*?)`', r'``\1``', read('CHANGELOG.rst'))
     ),
     author='Reliance Jio Cloud Services',
-    author_email='RDS.Team@ril.com',
-    url='https://github.com/jiocloudservices/jcsclient',
+    author_email='JioCloud.DSSTeam@ril.com',
+    url='https://github.com/jiocloudDSS/python-sdk',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
@@ -71,11 +71,6 @@ setup(
         # eg:
         #   'rst': ['docutils>=0.11'],
         #   ':python_version=="2.6"': ['argparse'],
-    },
-    entry_points={
-        'console_scripts': [
-            'jcs = jcsclient.clidriver:main',
-        ]
     },
     test_suite='client'
 )

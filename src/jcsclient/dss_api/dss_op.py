@@ -26,6 +26,7 @@ from jcsclient import config
 import json
 import requests
 from dss_auth import *
+from email.utils import formatdate
 
 class DSSOp(object):
     """Abstract class defining a common api for each DSS opertaion
@@ -74,7 +75,8 @@ class DSSOp(object):
 
     def make_request(self):
         # get signature
-        auth = DSSAuth(self.http_method, self.access_key, self.secret_key, self.dss_op_path, query_str = self.dss_query_str_for_signature)
+        date_str = formatdate(usegmt=True)
+        auth = DSSAuth(self.http_method, self.access_key, self.secret_key, date_str, self.dss_op_path, query_str = self.dss_query_str_for_signature)
         signature = auth.get_signature()
         self.http_headers['Authorization'] = signature
         self.http_headers['Date'] = formatdate(usegmt=True)
@@ -93,5 +95,12 @@ class DSSOp(object):
         resp_json = resp_json.replace("\\n", "\n")
         resp_json = resp_json.replace("\\", "")
         print(resp_json)
+
+    def raise_for_failure(self, res):
+        status = res.status_code
+        if status != 200 and status != 204:
+            output_msg = "\nRequest-Id: " + res.headers.get('x-jcs-request-id')
+            print(output_msg)
+            res.raise_for_status()
 
 

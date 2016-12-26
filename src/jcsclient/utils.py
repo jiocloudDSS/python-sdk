@@ -27,8 +27,8 @@ import argparse
 import json
 import binascii
 import xmltodict
-from jcsclient import help
-from jcsclient import exception
+import help
+import exception
 from Crypto.PublicKey import RSA
 # Set codes for success and failure of APIs.
 # This can be enhanced to return service specific
@@ -84,7 +84,7 @@ def create_controller(service, service_name):
 def get_dir_name(filename):
     """Return the current directory name from filename
 
-    param filename: The file whose directory name has 
+    param filename: The file whose directory name has
             to be returned
 
     return: string with directory name
@@ -94,7 +94,7 @@ def get_dir_name(filename):
 def get_dir_path(filename):
     """Return the current directory path from filename
 
-    param filename: The file whose directory path has 
+    param filename: The file whose directory path has
             to be returned
 
     return: string with directory path
@@ -280,7 +280,7 @@ def import_ssh_key(private_key_file, passphrase=None):
     """
     Import contents from RSA private key file
 
-    param private_key_file: path to private key file 
+    param private_key_file: path to private key file
 
     param passphrase: passphrase for the private key, by default
             None
