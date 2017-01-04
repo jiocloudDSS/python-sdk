@@ -23,7 +23,7 @@ def read(*names, **kwargs):
 
 setup(
     name='jcs-dss-sdk',
-    version='1.0.1',
+    version='1.0.3',
     license='BSD',
     description='python SDK for JCS DSS',
     long_description='%s\n%s' % (

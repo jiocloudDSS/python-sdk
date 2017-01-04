@@ -144,12 +144,13 @@ class MultipartUpload(object):
 
 class PutObjectOp(ObjectOp):
 
-    def __init__(self, bucketname, objname, path):
+    def __init__(self, bucketname, objname, path, enc):
         ObjectOp.__init__(self)
         self.http_method = 'PUT'
         self.object_name =objname
         self.bucket_name = bucketname
         self.local_file_name = path
+        self.encryption= enc
 
     def execute(self):
         # get signature
@@ -166,10 +167,12 @@ class PutObjectOp(ObjectOp):
         # get signature
         date_str = formatdate(usegmt=True)
         auth = DSSAuth(self.http_method, self.access_key, self.secret_key, date_str, self.dss_op_path,
-                       content_type='application/octet-stream')
+                       content_type='application/octet-stream', use_encryption=self.encryption)
         signature = auth.get_signature()
         self.http_headers['Authorization'] = signature
         self.http_headers['Date'] = date_str
+        if (self.encryption):
+            self.http_headers['x-jcs-server-side-encryption'] = 'AES256'
         if (is_folder):
             self.http_headers['Content-Length'] = 0
         else:

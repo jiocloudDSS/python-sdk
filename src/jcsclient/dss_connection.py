@@ -83,8 +83,8 @@ class DSSConnection(object):
         result = self.operate(op, options=None)
         return result
 
-    def put_object(self, buckName, objName, path):
-        op = PutObjectOp(buckName, objName, path)
+    def put_object(self, buckName, objName, path, encryption=False):
+        op = PutObjectOp(buckName, objName, path, encryption)
         result = self.operate(op)
         return result
 

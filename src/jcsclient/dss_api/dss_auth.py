@@ -30,7 +30,7 @@ class DSSAuth(object):
     """Class for handling authorization in DSS requests
     """
 
-    def __init__(self, http_method, access_key, secret_key, date_str, path = '/', query_str = None, content_type = None, use_time_in_seconds=False, expiry_time=0):
+    def __init__(self, http_method, access_key, secret_key, date_str, path = '/', query_str = None, content_type = None, use_time_in_seconds=False, expiry_time=0, use_encryption=False):
         self.http_method = http_method
         self.access_key = access_key
         self.secret_key = secret_key
@@ -40,6 +40,7 @@ class DSSAuth(object):
         self.content_type = content_type
         self.use_time_in_seconds = use_time_in_seconds
         self.expiry_time = expiry_time
+        self.use_encryption=use_encryption
 
     def get_cannonical_str(self):
         cannonical_str = ''
@@ -55,6 +56,8 @@ class DSSAuth(object):
         else:
           cannonical_str += "\n"
         cannonical_str += "\n" + self.date_str
+        if (self.use_encryption):
+            cannonical_str += "\n" + "x-jcs-server-side-encryption:AES256"
         cannonical_str += "\n" + path
         return cannonical_str
 
