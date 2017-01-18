@@ -112,7 +112,7 @@ class MultipartUpload(object):
         pass
 
     def partsToXML(self):
-        s = '<N>\n'
+        s = '<CompleteMultipartUpload>\n'
         for (partNum, partEtag) in self.parts:
             s += '  <Part>\n'
             s += '    <PartNumber>%d</PartNumber>\n' % partNum
